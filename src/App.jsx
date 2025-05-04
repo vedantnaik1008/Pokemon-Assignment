@@ -1,111 +1,74 @@
-import React, { useEffect, useState } from 'react';
 import PokemonCard from './components/PokemonCard';
-import './App.css'
+import usePokemonData from './hooks/usePokemonData';
+import './App.css';
 
 const App = () => {
-    const [pokemons, setPokemons] = useState([]);
-    const [filteredPokemons, setFilteredPokemons] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedType, setSelectedType] = useState('all');
-    const [loading, setLoading] = useState(true);
-    const [types, setTypes] = useState([]);
-
-    // Fetch Pokémon
-    useEffect(() => {
-        const fetchPokemons = async () => {
-            try {
-                const res = await fetch(
-                    'https://pokeapi.co/api/v2/pokemon?limit=150'
-                );
-                const data = await res.json();
-                const promises = data.results.map(async (p) => {
-                    const res = await fetch(p.url);
-                    const details = await res.json();
-                    return {
-                        id: details.id,
-                        name: details.name,
-                        image: details.sprites.front_default,
-                        types: details.types.map((t) => t.type.name)
-                    };
-                });
-                const results = await Promise.all(promises);
-                setPokemons(results);
-                setFilteredPokemons(results);
-
-                // Get unique types
-                const allTypes = new Set();
-                results.forEach((p) => p.types.forEach((t) => allTypes.add(t)));
-                setTypes(['all', ...Array.from(allTypes)]);
-            } catch (error) {
-                console.error('Error fetching Pokémon:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPokemons();
-    }, []);
-
-    // Filter when searchTerm or selectedType changes
-    useEffect(() => {
-        const filtered = pokemons.filter((pokemon) => {
-            const matchesSearch = pokemon.name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-            const matchesType =
-                selectedType === 'all' || pokemon.types.includes(selectedType);
-            return matchesSearch && matchesType;
-        });
-
-        setFilteredPokemons(filtered);
-    }, [searchTerm, selectedType, pokemons]);
+    const {
+        filteredPokemons,
+        searchTerm,
+        setSearchTerm,
+        selectedType,
+        setSelectedType,
+        loading,
+        types
+    } = usePokemonData();
 
     if (loading) {
         return (
-            <div className='text-center mt-10 text-xl'>Loading Pokémon...</div>
+            <div className='text-center mt-10 text-xl font-bold absolute top-1/2 left-1/2 -translate-1/2'>
+                Loading Pokemon...
+            </div>
         );
     }
 
     return (
-        <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
-            <h1 className='text-3xl font-bold text-center mb-6'>
-                Pokémon Explorer
-            </h1>
+        <>
+            <img
+                src='https://www.chromethemer.com/download/hd-wallpapers/pokemon-3840x2160.jpg'
+                loading='lazy'
+                alt='Background'
+                className='fixed top-0 left-0 w-full h-full object-cover -z-10'
+            />
+            <div
+                className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'
+                style={{ fontFamily: 'Press Start 2P' }}>
+                <h1 className='text-5xl sm:text-6xl font-extrabold text-white text-center mb-8'>
+                    PokeDex
+                </h1>
 
-            {/* Search + Filter */}
-            <div className='flex flex-col sm:flex-row items-center justify-between gap-4 mb-6'>
-                <input
-                    type='text'
-                    placeholder='Search Pokémon...'
-                    className='border border-gray-300 rounded-md px-4 py-2 w-full sm:w-1/2'
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <select
-                    className='border border-gray-300 rounded-md px-4 py-2 w-full sm:w-1/3'
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}>
-                    {types.map((type) => (
-                        <option key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </option>
-                    ))}
-                </select>
+                <div className='flex flex-col sm:flex-row items-center justify-between gap-4 mb-6'>
+                    <input
+                        type='text'
+                        placeholder='Search Pokémon...'
+                        className='border border-gray-300 bg-white rounded-md px-4 py-2 w-full sm:w-1/2'
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <select
+                        className='border border-gray-300 bg-white rounded-md px-4 py-2 w-full sm:w-1/3'
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}>
+                        {types.map((type) => (
+                            <option key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {filteredPokemons.length === 0 ? (
+                    <div className='text-2xl sm:text-3xl text-white font-bold text-center mb-6'>
+                        No Pokémon found.
+                    </div>
+                ) : (
+                    <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
+                        {filteredPokemons.map((pokemon) => (
+                            <PokemonCard key={pokemon.id} pokemon={pokemon} />
+                        ))}
+                    </div>
+                )}
             </div>
-
-            {/* Empty state */}
-            {filteredPokemons.length === 0 ? (
-                <div className='text-2xl sm:text-3xl font-bold text-center mb-6'>
-                    No Pokemon found.
-                </div>
-            ) : (
-                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
-                    {filteredPokemons.map((pokemon) => (
-                        <PokemonCard key={pokemon.id} pokemon={pokemon} />
-                    ))}
-                </div>
-            )}
-        </div>
+        </>
     );
 };
 

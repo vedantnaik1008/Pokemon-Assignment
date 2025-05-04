@@ -1,15 +1,22 @@
 import React from 'react';
+import typeGradients from '../utils/typeColors';
 
 const PokemonCard = ({ pokemon }) => {
+    const mainType = pokemon.types[0];
+    const gradient = typeGradients[mainType] || 'from-gray-300 to-gray-500';
     return (
-        <div className='bg-white rounded-xl shadow hover:shadow-lg transition p-4 text-center'>
+        <div
+            className={`rounded-xl shadow-md text-white p-4 bg-gradient-to-br ${gradient} 
+                  transform transition-transform duration-300 hover:scale-105 
+                  hover:shadow-xl hover:shadow-${mainType}-500/40 animate-fade-in`}>
             <img
                 src={pokemon.image}
                 alt={pokemon.name}
-                className='w-24 h-24 mx-auto'
+                loading='lazy'
+                className='w-28 h-w-28 mx-auto object-cover'
             />
             <h2 className='text-lg font-bold capitalize'>{pokemon.name}</h2>
-            <p className='text-gray-600'>#{pokemon.id}</p>
+            <p className='text-white'>#{pokemon.id}</p>
             <div className='flex justify-center gap-2 mt-2 flex-wrap'>
                 {pokemon.types.map((type) => (
                     <span

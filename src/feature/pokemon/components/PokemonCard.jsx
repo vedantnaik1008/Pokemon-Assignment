@@ -1,5 +1,5 @@
 import React from 'react';
-import typeGradients from '../utils/typeColors';
+import typeGradients from '../../../utils/typeColors';
 
 const PokemonCard = ({ pokemon }) => {
     const mainType = pokemon.types[0];

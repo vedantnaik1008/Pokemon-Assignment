@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { fetchPokemonDetails, fetchPokemonList } from '../services/pokemonApi';
 
 const usePokemonData = () => {
     const [pokemons, setPokemons] = useState([]);
@@ -11,14 +12,10 @@ const usePokemonData = () => {
     useEffect(() => {
         const fetchPokemons = async () => {
             try {
-                const res = await fetch(
-                    'https://pokeapi.co/api/v2/pokemon?limit=150'
-                );
-                const data = await res.json();
+                const data = await fetchPokemonList();
 
                 const promises = data.results.map(async (p) => {
-                    const res = await fetch(p.url);
-                    const details = await res.json();
+                    const details = await fetchPokemonDetails(p.url);
                     return {
                         id: details.id,
                         name: details.name,
